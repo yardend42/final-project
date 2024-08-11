@@ -1,0 +1,24 @@
+/* vacationsPage.css */
+.vacationsContainer {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  padding: 16px;
+}
+
+.filterContainer {
+  width: 100%;
+  height: 10vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  background-color: rgb(227, 230, 236);
+}
+
+.filterRow {
+  display: flex;
+  justify-content: right;
+  width: 100%;
+}
+
