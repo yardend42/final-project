@@ -16,7 +16,6 @@ const server = express();
 //cors- cross origin research shearing
 //cors=middleware
 server.use(cors());
-server.use(bodyParser.json());
 server.use(fileUpload());
 
 //how to send data back (json/xml/string)

@@ -10,6 +10,10 @@ import {
   toggleFavorite,
 } from "../logic/vacationsLogic";
 import { Vacation } from "../Models/vacations";
+import { v4 as uuidv4 } from "uuid";
+import fileUpload from "express-fileupload";
+import path from "path";
+import { error } from "console";
 
 const VacationsRouter = express.Router();
 
@@ -70,20 +74,44 @@ VacationsRouter.post(
   "/add",
   async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const newVacation = new Vacation(
-        request.body.destination,
-        request.body.description,
-        request.body.start_date,
-        request.body.end_date,
-        request.body.price,
-        request.body.image_filename
-      );
-      const addedVacation = await addVacation(newVacation);
-      const addedVacationID = addedVacation.insertId;
-      response.status(201).json({
-        msg: "added seccesfully",
-        vacation: newVacation,
-        VacationId: addedVacationID,
+      // Access the uploaded file
+      const file = request.files?.image as fileUpload.UploadedFile;
+      //?
+      if (!file) {
+        return response.status(400).send("No file uploaded.");
+      }
+
+      // Generate a unique filename
+      const uniqueFileName = `${uuidv4()}${path.extname(file.name)}`;
+
+      
+      // Set the upload path to 'frontend/public/vacationImg'
+      const uploadPath = path.join(__dirname, '../../frontend/public/vacationImg', uniqueFileName);
+
+      // Move the file to the desired directory
+      file.mv(uploadPath, async (error) => {
+        if (error) {
+          return response.status(500).send(error);
+        }
+
+        //creat new vacation object
+        const newVacation = new Vacation(
+          request.body.destination,
+          request.body.description,
+          request.body.start_date,
+          request.body.end_date,
+          request.body.price,
+          uniqueFileName  // Save the unique file name to the database
+        );
+        // Save the vacation to the database
+        const addedVacation = await addVacation(newVacation);
+        const addedVacationID = addedVacation.insertId;
+
+        response.status(201).json({
+          msg: "added seccesfully",
+          vacation: newVacation,
+          VacationId: addedVacationID,
+        });
       });
     } catch (err) {
       next(err);
