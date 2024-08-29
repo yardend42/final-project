@@ -8,23 +8,25 @@ import { Button } from "@mui/material";
 function AdminPage(): JSX.Element {
   const [vacations, setVacations] = useState<Vacation[]>([]);
   const [displayedVacations, setDisplayedVacations] = useState<Vacation[]>([]);
+  //pagination
   const [page, setPage] = useState<number>(1);
-  const limit = 10; // Number of vacations to display per page
+  const limit = 10;  // Display 10 vacations per page
+  const batchSize = 50; // Fetch 50 vacations at a time
 
   useEffect(() => {
-    fetchAllVacations();
+    loadBatch(1); // Load the first batch initially
   }, []);
 
   // Fetch all vacations once
-  const fetchAllVacations = async () => {
+  const loadBatch = async (batchNumber: number) => {
+    const offset = (batchNumber - 1) * batchSize;
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/v1/vacations/all"
+        `http://localhost:8080/api/v1/vacations/all?limit=${batchSize}&offset=${offset}`
       );
-      console.log(response);
-      const currentDate = new Date();
 
       // Filter out expired vacations
+      const currentDate = new Date();
       const validVacations = response.data
         .filter(
           (vacation: Vacation) => new Date(vacation.end_date) >= currentDate
@@ -34,8 +36,8 @@ function AdminPage(): JSX.Element {
             new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
         );
 
-      setVacations(validVacations);
-      setDisplayedVacations(validVacations.slice(0, limit));
+        setVacations((prev) => [...prev, ...validVacations]);
+        setDisplayedVacations(validVacations.slice(0, limit));
     } catch (error: any) {
       console.log(error);
     }
@@ -49,21 +51,24 @@ function AdminPage(): JSX.Element {
     setDisplayedVacations(vacations.slice(start, end));
   };
 
-  // Update vacations display after a vacation is deleted
-  const handleDeleteVacation = (vacationId: number) => {
+   // Update vacations display after a vacation is deleted
+   const handleDeleteVacation = (vacationId: number) => {
     setVacations((prevVacations) =>
       prevVacations.filter((vacation) => vacation.vacation_id !== vacationId)
     );
+    const start = (page - 1) * limit;
+    const end = start + limit;
     setDisplayedVacations((prevVacations) =>
       prevVacations
         .filter((vacation) => vacation.vacation_id !== vacationId)
-        .slice(0, page * limit)
+        .slice(start, end)
     );
   };
 
   // Update vacations display after a vacation is edited
   const handleEditVacation = () => {
-    fetchAllVacations();
+    const batchNumber = Math.ceil(page / (batchSize / limit));
+    loadBatch(batchNumber); // Reload the current batch to reflect the edited vacation
   };
 
   return (

@@ -3,9 +3,10 @@
 import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { AuthReducer } from "./AuthReducer";
 
-const reducers = combineReducers({auth:AuthReducer});
+const reducers = combineReducers({ auth: AuthReducer });
 
 export const store = configureStore({
-    reducer: reducers,
-    middleware: (getDefaultMiddleWare)=>getDefaultMiddleWare({serializableCheck:false}),
+  reducer: reducers,
+  middleware: (getDefaultMiddleWare) =>
+    getDefaultMiddleWare({ serializableCheck: false }),
 });

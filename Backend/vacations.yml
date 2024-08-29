@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  vacationsapi:
+    build: .  # Backend Dockerfile in the same directory as this compose file
+    image: vacations-api:latest
+    ports: 
+      - "8080:8080"  # Match the internal port for the backend
+    networks:
+      - mynetwork
+
+  frontend:
+    build: ../frontend  # Frontend Dockerfile in the frontend directory
+    image: vacations-frontend:latest
+    ports:
+      - "3000:3000"  # Match the internal port for the frontend
+    networks:
+      - mynetwork
+
+  mysql:
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydatabase
+      MYSQL_USER: user
+      MYSQL_PASSWORD: password
+    ports: 
+      - "3307:3306"  # Change the host port to 3307 or another unused port
+    networks:
+      - mynetwork
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: user
+      PMA_PASSWORD: password
+    ports:
+      - "8081:80"  # Use a different external port to avoid conflict with backend
+    depends_on:
+      - mysql
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge

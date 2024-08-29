@@ -7,13 +7,15 @@ import {
   DialogTitle,
   Button,
   TextField,
+  Box,
+  Typography,
 } from "@mui/material";
 import "./adminBtns.css";
 import { Vacation } from "../../Models/vacations";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
-import { useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface AdminBtnsProps {
@@ -26,6 +28,11 @@ function AdminBtns(props: AdminBtnsProps): JSX.Element {
   const { vacation, onDelete, onEdit } = props;
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    vacation.image_filename
+      ? `http://localhost:8080/uploads/vacationImg/${vacation.image_filename}`
+      : null
+  );
 
   const {
     register,
@@ -37,23 +44,75 @@ function AdminBtns(props: AdminBtnsProps): JSX.Element {
     defaultValues: vacation,
   });
 
+  // Function to format dates as YYYY-MM-DD
+  function formatDateForInput(date: Date): string {
+    const d = new Date(date);
+    const month = ("0" + (d.getMonth() + 1)).slice(-2); // Add leading zero for month
+    const day = ("0" + d.getDate()).slice(-2); // Add leading zero for day
+    const year = d.getFullYear();
+    return `${year}-${month}-${day}`; // Return as YYYY-MM-DD
+  }
+
   //edit btn&modal
   const handleEdit = () => {
     setEditOpen(true);
-    reset(vacation); // Reset the form with current vacation data
+    // Reset the form with current vacation data
+    reset({
+      ...vacation,
+      start_date: formatDateForInput(
+        new Date(vacation.start_date)
+      ) as unknown as Date, // Cast to bypass type check
+      end_date: formatDateForInput(
+        new Date(vacation.end_date)
+      ) as unknown as Date, // Cast to bypass type check
+    });
   };
 
   const handleUpdate = async (data: Vacation) => {
     try {
+      const formData = new FormData();
+      // Append the form data
+      formData.append("destination", data.destination);
+      formData.append("description", data.description);
+      formData.append("start_date", data.start_date.toString());
+      formData.append("end_date", data.end_date.toString());
+      formData.append("price", data.price.toString());
+
+      // If a new image is selected, append it to the form data
+      const fileInput = document.getElementById(
+        "image-upload"
+      ) as HTMLInputElement;
+      if (fileInput.files?.[0]) {
+        formData.append("image", fileInput.files[0]);
+      } else {
+        // If no new image is selected, append the existing image filename
+        formData.append("image_filename", vacation.image_filename);
+      }
+
       await axios.put(
         `http://localhost:8080/api/v1/vacations/edit/${data.vacation_id}`,
-        data
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
       );
-      console.log("Updated vacation:", data);
       setEditOpen(false);
-      onEdit?.(); // Refresh the vacation list after update
+      onEdit?.(); // Refresh the vacation list after update the . is . Optional chaining
     } catch (error: any) {
       console.log(error);
+    }
+  };
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -66,7 +125,6 @@ function AdminBtns(props: AdminBtnsProps): JSX.Element {
       );
       // Call the onDelete function
       onDelete?.(vacation.vacation_id);
-      console.log("Delete vacation:", vacation);
     } catch (error: any) {
       console.log(error);
     }
@@ -166,6 +224,7 @@ function AdminBtns(props: AdminBtnsProps): JSX.Element {
               InputLabelProps={{ shrink: true }}
               error={!!errors.start_date}
               helperText={errors.start_date ? errors.start_date.message : ""}
+              defaultValue={formatDateForInput(new Date(vacation.start_date))} // Format for display
             />
             <TextField
               {...register("end_date", {
@@ -185,6 +244,7 @@ function AdminBtns(props: AdminBtnsProps): JSX.Element {
               InputLabelProps={{ shrink: true }}
               error={!!errors.end_date}
               helperText={errors.end_date ? errors.end_date.message : ""}
+              defaultValue={formatDateForInput(new Date(vacation.end_date))} // Format for display
             />
             <TextField
               {...register("price", {
@@ -205,17 +265,65 @@ function AdminBtns(props: AdminBtnsProps): JSX.Element {
               error={!!errors.price}
               helperText={errors.price ? errors.price.message : ""}
             />
-            <TextField
-              {...register("image_filename")}
-              margin="dense"
-              label="Image Filename"
-              type="text"
-              fullWidth
-              error={!!errors.image_filename}
-              helperText={
-                errors.image_filename ? errors.image_filename.message : ""
-              }
-            />
+            <div className="image-input" style={{ textAlign: "center" }}>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                style={{ display: "none" }}
+                id="image-upload"
+              />
+              <label htmlFor="image-upload">
+                {imagePreview ? (
+                  <Box
+                    sx={{
+                      position: "relative",
+                      width: "100%",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={imagePreview}
+                      alt="Vacation"
+                      sx={{
+                        width: "100%", // Full width to match the inputs
+                        height: "auto", // Adjust height to maintain aspect ratio
+                        objectFit: "cover",
+                        borderRadius: 2,
+                        boxShadow: 3,
+                      }}
+                    />
+                    <Typography
+                      variant="subtitle2"
+                      color="white"
+                      sx={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        padding: "4px 8px",
+                        borderRadius: 1,
+                      }}
+                    >
+                      Click to change
+                    </Typography>
+                  </Box>
+                ) : (
+                  <Button
+                    variant="contained"
+                    component="span"
+                    onClick={() =>
+                      document.getElementById("image-upload")?.click()
+                    }
+                    fullWidth
+                  >
+                    Upload Image
+                  </Button>
+                )}
+              </label>
+            </div>
             <DialogActions>
               <Button onClick={() => setEditOpen(false)} color="primary">
                 Cancel

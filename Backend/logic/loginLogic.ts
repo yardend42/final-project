@@ -1,48 +1,57 @@
-import { UserCred } from "../Models/UserCred";
-import { createJWT } from "../Utils/jwt";
+import { UserCred } from "../models/UserCred";
+import { createJWT } from "../utils/jwt";
 import { ResultSetHeader } from "mysql2";
-const fs = require("fs");
 import dal_mysql from "../DAL/dal_mysql";
 
 const registerUser = async (user: UserCred) => {
-  let userInfo;
   try {
-    // const hashedPassword = bcrypt.hashSync(user.password, 8);
+    const checkEmailSql = `SELECT email FROM users WHERE email = '${user.email}'`;
+    const existingUsers = await dal_mysql.execute(checkEmailSql);
+
+    if (existingUsers.length > 0) {
+      return { msg: "Email already exists" }; // Return an error message if email exists
+    }
+
     const sql = `
     INSERT INTO users (first_name, last_name, email, password, role)
     VALUES ('${user.first_name}', '${user.last_name}', '${user.email}', '${user.password}', '${user.role}')
 `;
 
     const result: ResultSetHeader = await dal_mysql.execute(sql);
-    console.log(result);
     user.user_id = +result.insertId;
-    return "User was created";
+
+    // Generate JWT after registration
+    const token = createJWT(user);
+
+    return {
+      msg: "User was created",
+      token, // Send back the JWT token
+      user_id: user.user_id,
+    };
   } catch (err: any) {
     return err;
   }
 };
 
 const loginUser = async (user: UserCred): Promise<any> => {
-  let userInfo;
+  let userInfo: any;
   //fetch user if exists
   try {
     const sql = `SELECT *, CONCAT(first_name, ' ', last_name) AS full_name 
     FROM users WHERE email = '${user.email}'`;
+
     userInfo = await dal_mysql.execute(sql);
 
     if (userInfo.length === 0) {
-      return { msg: "Invalid email" };
+      return { msg: "Invalid email or password" };
     }
-  } catch (err) {
-    return { msg: "An error occurred while fetching user data" };
-  }
-  let singleUser = userInfo[0];
 
-  //sending jwt if user data is o.k.
-  try {
+    let singleUser = userInfo[0];
+
+    // Compare the provided password
     if (singleUser.password === user.password) {
       const userInfo = {
-        isLoggedIn : true,
+        isLoggedIn: true,
         name: singleUser.first_name,
         email: singleUser.email,
         role: singleUser.role,
@@ -57,14 +66,5 @@ const loginUser = async (user: UserCred): Promise<any> => {
   }
 };
 
-const deleteUser = async (userId: number) => {
-  try {
-    const sql = `DELETE FROM users WHERE id=${userId}`;
-    console.log(sql);
-    await dal_mysql.execute(sql);
-    return true;
-  } catch (err) {
-    console.log(err);
-  }
-};
-export { registerUser, loginUser, deleteUser };
+
+export { registerUser, loginUser };

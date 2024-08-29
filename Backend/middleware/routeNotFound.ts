@@ -1,7 +1,7 @@
 import {Request,Response,NextFunction} from "express";
 
 //error->model
-import { RouteNotFound } from "../Models/clientErrors";
+import { RouteNotFound } from "../models/clientErrors";
 
 //middle ware function
 const ErrorHandler = (request:Request,response:Response,nextFunction:NextFunction) =>{

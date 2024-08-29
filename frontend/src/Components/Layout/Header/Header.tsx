@@ -1,6 +1,6 @@
 import "./Header.css";
 import { AppBar, Toolbar, Typography } from "@mui/material";
-import AirplanemodeActiveIcon from '@mui/icons-material/AirplanemodeActive';
+import AirplanemodeActiveIcon from "@mui/icons-material/AirplanemodeActive";
 import MainMenu from "../mainMenu/mainMenu";
 import { AuthState } from "../../Redux/AuthReducer";
 import { useSelector } from "react-redux";
@@ -16,7 +16,7 @@ function Header(): JSX.Element {
             <AirplanemodeActiveIcon sx={{ marginRight: 1 }} />
             Welcome {name}
           </Typography>
-          <MainMenu/>
+          <MainMenu />
         </Toolbar>
       </AppBar>
     </div>

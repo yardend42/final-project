@@ -16,9 +16,11 @@ function VacationsPage(): JSX.Element {
   const [vacations, setVacations] = useState<Vacation[]>([]);
   const [likedVacations, setLikedVacations] = useState<number[]>([]);
   const [displayedVacations, setDisplayedVacations] = useState<Vacation[]>([]);
-
+ 
   const [page, setPage] = useState<number>(1);
-  const limit = 10;
+  const limit = 10;  // Display 10 vacations per page
+  const batchSize = 50;
+  
 
   // Checkbox
   const [filters, setFilters] = useState<Filters>({
@@ -26,19 +28,19 @@ function VacationsPage(): JSX.Element {
     future: false,
     active: false,
   });
+  
 
-    // filters and initial vacations load
-    useEffect(() => {
-      const decodedToken = getDecodedToken();
-      if (decodedToken) {
-        getAllVacations();
-        // Get user favorites
-      }
-  
+  useEffect(() => {
+    const decodedToken = getDecodedToken();
+    
+    const loadVacations = async () => {
+      // Determine which batch of vacations to load based on the current page
+      const batchNumber = Math.ceil(page / (batchSize / limit));
+      await getVacationsByBatch(batchNumber);
+
       let filtered = vacations;
-  
       if (filters.favorite) {
-        getUserFavorites(decodedToken.user_id);
+        await getUserFavorites(decodedToken.user_id);
         filtered = favoriteFilter(filtered);
       }
       if (filters.active) {
@@ -50,32 +52,33 @@ function VacationsPage(): JSX.Element {
       if (!filters.favorite && !filters.active && !filters.future) {
         filtered = vacations;
       }
-  
+
       // Update displayed vacations based on the current page
       const start = (page - 1) * limit;
       const end = start + limit;
       setDisplayedVacations(filtered.slice(start, end));
-    }, [filters, vacations, page]);
+    };
 
-  // Get all vacations
-  const getAllVacations = async () => {
+    loadVacations();
+  }, [filters, vacations, page]);
+
+  // Fetch vacations by batch
+  const getVacationsByBatch = async (batchNumber: number) => {
+    const offset = (batchNumber - 1) * batchSize;
     try {
       const response = await axios.get(
-        "http://localhost:8080/api/v1/vacations/all"
+        `http://localhost:8080/api/v1/vacations/all?limit=${batchSize}&offset=${offset}`
       );
       const currentDate = new Date();
 
-      // Filter out expired vacations
-      const validVacations = response.data.filter((vacation: Vacation) => {
-        return new Date(vacation.end_date) >= currentDate;
-      });
-
-      // Sort vacations by start date
-      validVacations.sort((a: Vacation, b: Vacation) => {
-        return (
-          new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+      const validVacations = response.data
+        .filter(
+          (vacation: Vacation) => new Date(vacation.end_date) >= currentDate
+        )
+        .sort(
+          (a: Vacation, b: Vacation) =>
+            new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
         );
-      });
 
       setVacations(validVacations);
     } catch (error: any) {
@@ -83,7 +86,7 @@ function VacationsPage(): JSX.Element {
     }
   };
 
-  //get user favories
+  // Get user favorites
   const getUserFavorites = async (user_id: number) => {
     try {
       const response = await axios.get(
@@ -103,13 +106,11 @@ function VacationsPage(): JSX.Element {
   const handleFilterChange = (event: SyntheticEvent) => {
     const target = event.target as HTMLInputElement;
     const { name, checked } = target;
-    console.log(target.checked, event);
     setFilters((prevFilters) => ({
       ...prevFilters,
       [name]: checked,
     }));
   };
-
 
   const favoriteFilter = (vacations: Vacation[]) => {
     return vacations.filter((vacation) =>
@@ -135,8 +136,13 @@ function VacationsPage(): JSX.Element {
   // Handle page change
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
+    const start = (newPage - 1) * limit;
+    const end = start + limit;
+    setDisplayedVacations(vacations.slice(start, end));
+  // Scroll to the top of the page
+ 
   };
-
+  
   return (
     <div className="vacations">
       <div className="filterContainer">

@@ -1,19 +1,15 @@
 import express, { NextFunction, Request, Response } from "express";
-
 import {
   addVacation,
   deleteVacation,
   editVacation,
-  getAllVacations,
   getFollowersCount,
   getUserLikedVacations,
+  getVacationsByPage,
   toggleFavorite,
 } from "../logic/vacationsLogic";
-import { Vacation } from "../Models/vacations";
-import { v4 as uuidv4 } from "uuid";
-import fileUpload from "express-fileupload";
-import path from "path";
-import { error } from "console";
+import { Vacation } from "../models/vacations";
+import { UploadedFile } from "express-fileupload";
 
 const VacationsRouter = express.Router();
 
@@ -22,8 +18,9 @@ VacationsRouter.get(
   "/all",
   async (request: Request, response: Response, next: NextFunction) => {
     try {
-      const vacations = await getAllVacations();
-      console.log("Returning vacations: ", vacations);
+      const page = parseInt(request.query.page as string) || 1;
+      const limit = parseInt(request.query.limit as string) || 50;
+      const vacations = await getVacationsByPage(page, limit);
       response.status(200).json(vacations);
     } catch (err) {
       next(err);
@@ -74,44 +71,18 @@ VacationsRouter.post(
   "/add",
   async (request: Request, response: Response, next: NextFunction) => {
     try {
-      // Access the uploaded file
-      const file = request.files?.image as fileUpload.UploadedFile;
-      //?
+      //check if file
+      const file = request.files?.image as UploadedFile;
+
       if (!file) {
         return response.status(400).send("No file uploaded.");
       }
 
-      // Generate a unique filename
-      const uniqueFileName = `${uuidv4()}${path.extname(file.name)}`;
+      const addedVacation = await addVacation(request.body, file);
 
-      
-      // Set the upload path to 'frontend/public/vacationImg'
-      const uploadPath = path.join(__dirname, '../../frontend/public/vacationImg', uniqueFileName);
-
-      // Move the file to the desired directory
-      file.mv(uploadPath, async (error) => {
-        if (error) {
-          return response.status(500).send(error);
-        }
-
-        //creat new vacation object
-        const newVacation = new Vacation(
-          request.body.destination,
-          request.body.description,
-          request.body.start_date,
-          request.body.end_date,
-          request.body.price,
-          uniqueFileName  // Save the unique file name to the database
-        );
-        // Save the vacation to the database
-        const addedVacation = await addVacation(newVacation);
-        const addedVacationID = addedVacation.insertId;
-
-        response.status(201).json({
-          msg: "added seccesfully",
-          vacation: newVacation,
-          VacationId: addedVacationID,
-        });
+      response.status(201).json({
+        msg: "Vacation added successfully",
+        vacation: addedVacation,
       });
     } catch (err) {
       next(err);
@@ -124,20 +95,28 @@ VacationsRouter.put(
   async (request: Request, response: Response, next: NextFunction) => {
     try {
       const vacationId = parseInt(request.params.id, 10);
+
+      // Extract the file if it's included in the request
+      const file = request.files?.image as UploadedFile;
+
+      // Create the updated Vacation object
       const updatedVacation = new Vacation(
         request.body.destination,
         request.body.description,
-        request.body.start_date,
-        request.body.end_date,
-        request.body.price,
+        new Date(request.body.start_date),
+        new Date(request.body.end_date),
+        parseFloat(request.body.price),
+        // existing image filename from bd or new filename if the image is updated
         request.body.image_filename
       );
 
-      const result = await editVacation(vacationId, updatedVacation);
+      // Call the editVacation function
+      const result = await editVacation(vacationId, updatedVacation, file);
+
+      // Send the response back to the client
       response.status(200).json({
-        msg: "edited successfully",
-        vacation: updatedVacation,
-        result,
+        msg: "Vacation edited successfully",
+        vacation: result,
       });
     } catch (err) {
       next(err);

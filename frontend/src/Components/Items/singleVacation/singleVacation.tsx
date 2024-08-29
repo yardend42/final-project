@@ -14,7 +14,7 @@ interface SingleVacationProps {
 }
 
 function SingleVacation(props: SingleVacationProps): JSX.Element {
-  const { vacation,likedVacations= [], onDelete, onEdit } = props;
+  const { vacation, likedVacations = [], onDelete, onEdit } = props;
   const [role, setRole] = useState<string | null>(null);
   const [userID, setUserId] = useState<number>(NaN);
 
@@ -27,21 +27,21 @@ function SingleVacation(props: SingleVacationProps): JSX.Element {
     setUserId(decodedToken.user_id);
   }, []);
 
-  
-
   return (
     <Card className="singleVacation">
       {role === "admin" ? (
         <AdminBtns vacation={vacation} onDelete={onDelete} onEdit={onEdit} />
       ) : (
-        <FollowBtn vacation={vacation} user_id={userID} likedVacations={likedVacations}/>
+        <FollowBtn
+          vacation={vacation}
+          user_id={userID}
+          likedVacations={likedVacations}
+        />
       )}
       <CardMedia
-      /* <img src="/vacationImg/thailand.jpg" alt="Logo" />
- */
         component="img"
         height="140"
-        image={`/${vacation.image_filename}`}
+        image={`http://localhost:8080/uploads/vacationImg/${vacation.image_filename}`}
         alt={vacation.destination}
       />
       <CardContent>

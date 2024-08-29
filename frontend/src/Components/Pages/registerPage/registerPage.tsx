@@ -12,9 +12,10 @@ import { UserCred } from "../../Models/UserCred";
 import { SubmitHandler, useForm } from "react-hook-form";
 import axios from "axios";
 import notify from "../../Utils/Notify";
+import { store } from "../../Redux/store";
+import { loginAction, logoutAction } from "../../Redux/AuthReducer";
 
 function RegisterPage(): JSX.Element {
-  console.log("register page");
   const navigate = useNavigate();
   const {
     register,
@@ -31,13 +32,30 @@ function RegisterPage(): JSX.Element {
           last_name: data.last_name,
           email: data.email,
           password: data.password,
-          role: "user" /* hard code database to create admin */,
+          role: "user" /* hardcode database to create admin */,
         }
       );
+      //if email exists
+      if (response.data.msg.msg === "Email already exists") {
+        notify.error("Email already exists. Please use a different email.");
+        return;
+      }
+
+      //log in after creation if user allowed
+      const token = response.data.msg.token;
+      const user = {
+        email: data.email,
+        jwt: token,
+        name: `${data.first_name} ${data.last_name}`,
+        role: "user",
+      };
+      store.dispatch(logoutAction()); // Clear previous state
+      store.dispatch(loginAction(user)); // Update with new state
+      localStorage.setItem("jwt", token);
+
       notify.success("User registered successful");
       navigate("/vacations");
     } catch (error) {
-      console.log(error);
       notify.error("User registration unsuccessful");
     }
   };

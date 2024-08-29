@@ -11,54 +11,54 @@ import PrivateRoute from "../PrivateRoute/PrivateRoute";
 
 function MainRoute(): JSX.Element {
   return (
-      <div className="mainRoute">
-        <Routes>
-          <Route path="/" element={<MainPage />} />
-          <Route
-            path="/adminPage"
-            element={
-              <PrivateRoute
-                requiredRole="admin"
-                element={<AdminPage />}
-                path="/adminPage"
-              />
-            }
-          />
-          <Route
-            path="/vacations"
-            element={
-              <PrivateRoute
-                requiredRole="user"
-                element={<VacationsPage />}
-                path="/vacations"
-              />
-            }
-          />
-          <Route
-            path="/addVacation"
-            element={
-              <PrivateRoute
-                requiredRole="admin"
-                element={<AddVacation />}
-                path="/addVacation"
-              />
-            }
-          />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/reports"
-            element={
-              <PrivateRoute
-                requiredRole="admin"
-                element={<VacationReports />}
-                path="/reports"
-              />
-            }
-          />
-          <Route path="*" element={<Page404 />} />
-        </Routes>
-      </div>
+    <div className="mainRoute">
+      <Routes>
+        <Route path="/" element={<MainPage />} />
+        <Route
+          path="/adminPage"
+          element={
+            <PrivateRoute
+              requiredRole="admin"
+              element={<AdminPage />}
+              path="/adminPage"
+            />
+          }
+        />
+        <Route
+          path="/vacations"
+          element={
+            <PrivateRoute
+              requiredRole="user"
+              element={<VacationsPage />}
+              path="/vacations"
+            />
+          }
+        />
+        <Route
+          path="/addVacation"
+          element={
+            <PrivateRoute
+              requiredRole="admin"
+              element={<AddVacation />}
+              path="/addVacation"
+            />
+          }
+        />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/reports"
+          element={
+            <PrivateRoute
+              requiredRole="admin"
+              element={<VacationReports />}
+              path="/reports"
+            />
+          }
+        />
+        <Route path="*" element={<Page404 />} />
+      </Routes>
+    </div>
   );
 }
 

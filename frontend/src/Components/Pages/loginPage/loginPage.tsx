@@ -36,7 +36,6 @@ function LoginPage(): JSX.Element {
       .then((res) => {
         const result = res.data;
         const jwt = result.jwt;
-        console.log("my result:", result);
 
         store.dispatch(logoutAction()); // Clear previous state
         store.dispatch(loginAction(res.data)); // Update with new state
@@ -61,8 +60,7 @@ function LoginPage(): JSX.Element {
         }
       })
       .catch((err) => {
-        console.log(err);
-        notify.error("Why who are you?");
+        notify.error("user not found");
       });
   };
 

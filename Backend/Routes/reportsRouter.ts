@@ -2,7 +2,7 @@
 import express, { NextFunction, Request, Response } from "express";
 //import vehicles=> my logic for vehicles
 
-import { checkJWT } from "../Utils/jwt";
+import { checkJWT } from "../utils/jwt";
 import dal_mysql from "../DAL/dal_mysql";
 import { getFollowersReport } from "../logic/reportsLogic";
 

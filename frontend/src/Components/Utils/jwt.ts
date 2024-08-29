@@ -10,7 +10,7 @@ export const checkJWT = () => {
   if (jwt.length < 10) {
     jwt = localStorage.getItem("jwt")?.split(" ")[1] || "";
   }
-  
+
   if (jwt.length < 10) {
     return false;
   }
