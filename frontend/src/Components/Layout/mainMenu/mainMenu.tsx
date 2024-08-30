@@ -25,8 +25,13 @@ function MainMenu(): JSX.Element {
 
   const checkRole = async () => {
     const decodedToken = await getDecodedToken();
-    setRole(decodedToken.role);
+    if (decodedToken && decodedToken.role) {
+      setRole(decodedToken.role);
+    } else {
+      console.log("Decoded token is invalid:", decodedToken);
+    }
   };
+  
 
   const handleLogout = () => {
     localStorage.removeItem("jwt");

@@ -8,26 +8,55 @@ services:
       - "8080:8080"  # Match the internal port for the backend
     networks:
       - mynetwork
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - NODE_ENV=production
+      - MYSQL_HOST=mysql  # Use the service name 'mysql' as the host
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=rootpassword  # Ensure this matches what you're using
+      - MYSQL_DB=mydatabase
+    depends_on:
+      - mysql  # Ensure the database is up before the API tries to connect
+
 
   frontend:
     build: ../frontend  # Frontend Dockerfile in the frontend directory
     image: vacations-frontend:latest
     ports:
       - "3000:3000"  # Match the internal port for the frontend
+    environment:
+      REACT_APP_API_URL: http://vacationsapi:8080
     networks:
       - mynetwork
+    depends_on:
+      - vacationsapi
 
   mysql:
+    #first service mysql
     image: mysql:8
+    #parameters such as: database,root user, normal user, password, etc...
     environment:
+      #Root password (master user)
       MYSQL_ROOT_PASSWORD: rootpassword
+      #Database name
       MYSQL_DATABASE: mydatabase
+      #regular user name
       MYSQL_USER: user
+      #mysql password(12345678)
       MYSQL_PASSWORD: password
+    #Which ports we shell use
     ports: 
-      - "3307:3306"  # Change the host port to 3307 or another unused port
+    #ports to be exposed
+      - "3307:3306"
+    #volumes:
+    #name hdd location for mysql
+    #  - mysql-data:/var/lib/mysql
     networks:
+    #name of the network that we are running
       - mynetwork
+    #command: --default-authentication-plugin=mysql_native_password
+
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
@@ -45,3 +74,6 @@ services:
 networks:
   mynetwork:
     driver: bridge
+
+volumes:
+  mysql-data:

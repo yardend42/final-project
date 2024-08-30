@@ -7,7 +7,6 @@ export class UserCred {
   public role: "user" | "admin";
   public password: string; //will not pass in the jwt token
   public jwt?: string;
-  public passwordHash?: string; // This will be used to compare with the provided password during login
 
   constructor(
     user_id: number,
@@ -19,7 +18,6 @@ export class UserCred {
     password: string,
     jwt?: string,
 
-    passwordHash?: string // Optional during token creation, but needed for login verification
   ) {
     this.user_id = user_id;
     this.first_name = first_name;
@@ -30,6 +28,5 @@ export class UserCred {
     this.password = password;
     this.jwt = jwt;
 
-    this.passwordHash = passwordHash;
   }
 }

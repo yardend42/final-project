@@ -15,7 +15,7 @@ RUN npm install -g npm@10.8.1
 RUN npm install 
 
 #install nodemon as global service
-RUN npm install -g nodemon
+RUN npm install -g nodemon ts-node
 
 #install ts-node as global service
 RUN npm install -g ts-node

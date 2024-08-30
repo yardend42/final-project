@@ -1,31 +1,30 @@
-# which opreation system and node version we shell use...
+# Use a lightweight Node.js image as the base
 FROM node:18-alpine
 
-#Create Application directory (destination)
+# Create Application directory (destination)
 WORKDIR /usr/src/app
 
-#Install application dependencies (node_modules)
+# Copy package.json and package-lock.json if available
 COPY package.json ./
 
-#Run the commands for proper installtion
-#update npm version
-RUN npm install -g npm@10.8.1
+# Install application dependencies
+RUN npm install
 
-#run npm install for install all dependencies into node_modules directory
-RUN npm install 
+# Copy the rest of the application files
+COPY . .
 
-#install serve as global service
+# Build the React app
+RUN npm run build
+
+# Install serve as a global service to serve the React build
 RUN npm install -g serve
 
-#copy all files from source to destination where . is current directory
-COPY build/. .
-
-#which port we want to expose
+# Expose the port the app will run on
 EXPOSE 3000
 
-CMD ["serve","-s", "build"]
+# Use serve to serve the static files
+CMD ["serve", "-s", "build"]
 
-#for bulding the docker, just run the command => docker build . -t cars-api
-#for running the docker, just run the command => docker run -p 5050:8080 cars-api
-#push the image to docker hub, so we can use it anywhere in the world :
-#docker push mindalizeev/cars-api:latest      
+# Optional Docker build and run commands:
+# docker build . -t my-react-app
+# docker run -p 3000:3000 my-react-app

@@ -4,23 +4,6 @@ import { handleFileUpload } from "../utils/uuid";
 import { UploadedFile } from "express-fileupload";
 
 //all vacation
-/* const getAllVacations = async () => {
-  const sql = `SELECT * FROM vacations LIMIT 50 ;`;
-  const result = await dal_mysql.execute(sql);
-  const vacations = (result as Vacation[]).map((row) => {
-    return new Vacation(
-      row.destination,
-      row.description,
-      new Date(row.start_date),
-      new Date(row.end_date),
-      row.price,
-      row.image_filename,
-      row.vacation_id
-    );
-  });
-  return vacations;
-}; */
-
 const getVacationsByPage = async (page: number, limit: number) => {
   const offset = (page - 1) * limit;
   const sql = `SELECT * FROM vacations LIMIT ${limit} OFFSET ${offset};`;

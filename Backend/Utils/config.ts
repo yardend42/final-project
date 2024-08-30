@@ -1,7 +1,7 @@
 class Config{
 public webPort = 8080;
 public webHost = "localhost"
-public mySQLhost = 'localhost';
+public mySQLhost = 'mysql';
 public mySQLuser = 'root';
 public mySQLpassword = '12345678';
 public mySQLdb = 'vacations';
