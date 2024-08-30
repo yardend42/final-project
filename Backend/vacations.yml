@@ -12,7 +12,7 @@ services:
       - .:/usr/src/app
     environment:
       - NODE_ENV=production
-      - MYSQL_HOST=localhost  # Use this to connect to the MySQL service defined in this Docker Compose file
+      - MYSQL_HOST=mysql  # Correct host for MySQL service
       - MYSQL_USER=root
       - MYSQL_PASSWORD=12345678
       - MYSQL_DB=vacations
@@ -23,17 +23,17 @@ services:
     ports:
       - "3000:3000"  # Match the internal port for the frontend
     environment:
-      REACT_APP_API_URL: http://vacationsapi:8080
+      REACT_APP_API_URL: http://vacationsapi:8080  # Correct backend service URL within the Docker network
     networks:
       - mynetwork
     
   mysql:
     image: mysql:8
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: 12345678
       MYSQL_DATABASE: vacations
-      MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 12345678
     ports: 
       - "3307:3306"
     networks:
@@ -41,22 +41,9 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    environment:
-      PMA_HOST: mysql
-      PMA_USER: user
-      PMA_PASSWORD: password
-    ports:
-      - "8081:80"  # Use a different external port to avoid conflict with backend
-    depends_on:
-      - mysql
-    networks:
-      - mynetwork
-
 networks:
   mynetwork:
-    driver: bridge
+     driver: bridge
 
 volumes:
   mysql-data:
