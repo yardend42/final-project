@@ -62,7 +62,8 @@ const loginUser = async (user: UserCred): Promise<any> => {
       return { msg: "Invalid password" };
     }
   } catch (err) {
-    return { msg: "An error occurred during authentication" };
+    return { msg: "An error occurred during authentication",err
+     };
   }
 };
 
